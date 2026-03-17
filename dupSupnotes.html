@@ -2,80 +2,83 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>NeonFlow Ultra - Zero Lag</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NeonFlow Ultra - Mobile Ready</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root { --neon: #00f3ff; --panel: rgba(15, 15, 25, 0.98); }
-        body { margin: 0; background: #050508; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; background: #050508; color: white; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; }
         .dashboard {
-            position: fixed; top: 0; left: 0; width: 100%; height: 75px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 70px;
             background: var(--panel); border-bottom: 2px solid #333;
-            display: flex; align-items: center; justify-content: space-around;
-            padding: 0 10px; z-index: 1000;
+            display: flex; align-items: center; justify-content: flex-start;
+            padding: 0 5px; z-index: 1000; overflow-x: auto; white-space: nowrap;
         }
-        .tool-group { display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 15px; }
+        .tool-group { display: flex; gap: 5px; align-items: center; background: rgba(255,255,255,0.05); padding: 5px 8px; border-radius: 12px; margin-right: 10px; }
         .btn {
-            background: transparent; border: none; color: #777; font-size: 15px;
-            cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; gap: 3px; width: 50px;
+            background: transparent; border: none; color: #777; font-size: 14px;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 45px;
         }
-        .btn span { font-size: 8px; text-transform: uppercase; font-weight: bold; }
+        .btn span { font-size: 7px; text-transform: uppercase; }
         .btn:hover, .btn.active { color: var(--neon); text-shadow: 0 0 8px var(--neon); }
-        .status-pill { background: #000; padding: 4px 10px; border-radius: 20px; border: 1px solid #444; font-size: 12px; color: var(--neon); text-align: center; }
-        input[type="range"] { width: 50px; accent-color: var(--neon); cursor: pointer; }
-        canvas { margin-top: 75px; }
+        .status-pill { background: #000; padding: 3px 8px; border-radius: 15px; border: 1px solid #444; font-size: 10px; color: var(--neon); }
+        canvas { margin-top: 70px; }
+        /* Hide scrollbar for dashboard */
+        .dashboard::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
 <div class="dashboard">
     <div class="tool-group">
         <button class="btn active" id="penM" onclick="setMode('pen')"><i class="fas fa-pen"></i><span>Pen</span></button>
         <button class="btn" id="highM" onclick="setMode('high')"><i class="fas fa-marker" style="color:#ff0"></i><span>High</span></button>
-        <button class="btn" id="textM" onclick="setMode('text')"><i class="fas fa-font"></i><span>Type</span></button>
         <button class="btn" id="eraserM" onclick="setMode('eraser')"><i class="fas fa-eraser"></i><span>Eraser</span></button>
     </div>
 
     <div class="tool-group">
         <input type="range" id="sizeW" min="1" max="50" value="3" oninput="updateBrush()">
-        <input type="color" id="colorP" value="#00f3ff" onchange="updateBrush()" style="border:none; background:none; width:25px; height:25px; cursor:pointer;">
+        <input type="color" id="colorP" value="#00f3ff" onchange="updateBrush()" style="width:20px;height:20px;">
     </div>
 
     <div class="tool-group">
         <input type="file" id="pdfInp" hidden accept="application/pdf">
         <button class="btn" onclick="document.getElementById('pdfInp').click()"><i class="fas fa-file-pdf"></i><span>PDF</span></button>
-        <input type="file" id="imgInp" hidden accept="image/*">
-        <button class="btn" onclick="document.getElementById('imgInp').click()"><i class="fas fa-image"></i><span>Photo</span></button>
-        <button class="btn" onclick="duplicateCurrentPage()" style="color:#2ed573"><i class="fas fa-clone"></i><span>Copy</span></button>
-        <button class="btn" onclick="deleteActive()" style="color:#ff4757"><i class="fas fa-trash-alt"></i><span>Clear</span></button>
+        <button class="btn" onclick="addNewPage()"><i class="fas fa-plus"></i><span>New</span></button>
+        <button class="btn" onclick="deleteActive()" style="color:#ff4757"><i class="fas fa-trash"></i><span>Clear</span></button>
     </div>
 
     <div class="tool-group">
-        <button class="btn" onclick="prevPage()"><i class="fas fa-chevron-left"></i><span>Prev</span></button>
-        <div class="status-pill" id="pLabel">1 / 1</div>
-        <button class="btn" onclick="nextPage()"><i class="fas fa-chevron-right"></i><span>Next</span></button>
-        <button class="btn" onclick="addNewPage()" style="color:var(--neon)"><i class="fas fa-plus"></i><span>New</span></button>
-        <div class="status-pill" id="zLabel">100%</div>
+        <button class="btn" onclick="prevPage()"><i class="fas fa-chevron-left"></i></button>
+        <div class="status-pill" id="pLabel">1/1</div>
+        <button class="btn" onclick="nextPage()"><i class="fas fa-chevron-right"></i></button>
     </div>
 </div>
 
 <canvas id="c"></canvas>
 
 <script>
-    // ল্যাগ কমানোর জন্য পারফরম্যান্স সেটিংস
     const canvas = new fabric.Canvas('c', {
-        width: window.innerWidth, height: window.innerHeight - 75,
-        backgroundColor: '#050508', isDrawingMode: true,
-        fireRightClick: true, stopContextMenu: true,
-        renderOnAddRemove: false, // ল্যাগ কমায়
-        statefullCache: true,    // অবজেক্ট ক্যাশ করে স্পিড বাড়ায়
-        objectCaching: true      // কমপ্লেক্স ড্রয়িং স্মুথ করে
+        width: window.innerWidth,
+        height: window.innerHeight - 70,
+        backgroundColor: '#050508',
+        isDrawingMode: true,
+        allowTouchScrolling: false // টাচ করার সময় পেজ যেন না নড়ে
+    });
+
+    // মোবাইল সাপোর্ট ফিক্স
+    fabric.Object.prototype.set({
+        transparentCorners: false,
+        cornerColor: '#00f3ff',
+        cornerStyle: 'circle',
+        borderColor: '#00f3ff',
+        cornerSize: 12
     });
 
     let pages = [null]; let currentPage = 0; let currentMode = 'pen';
-    let isRightClickActive = false;
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
     function updateBrush() {
@@ -83,73 +86,31 @@
         let color = document.getElementById('colorP').value;
         canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
         canvas.freeDrawingBrush.width = parseInt(size, 10);
-        canvas.freeDrawingBrush.decimate = 3; // পারফরম্যান্সের জন্য অপ্টিমাইজড
         if (currentMode === 'high') {
             canvas.freeDrawingBrush.color = color + '55';
-            canvas.freeDrawingBrush.width = Math.max(size, 20);
+            canvas.freeDrawingBrush.width = 25;
         } else {
             canvas.freeDrawingBrush.color = color;
         }
     }
 
-    // রাইট ক্লিক কন্ট্রোল (Hyper Fast Response)
-    canvas.on('mouse:down', function(opt) {
-        if (opt.button === 3) {
-            isRightClickActive = true; this.isDragging = true;
-            canvas.isDrawingMode = false;
-            this.lastPosX = opt.e.clientX; this.lastPosY = opt.e.clientY;
-        }
-        if (currentMode === 'text' && !opt.target && opt.button !== 3) {
-            const text = new fabric.IText('টাইপ করুন...', { left: opt.pointer.x, top: opt.pointer.y, fontSize: 25, fill: document.getElementById('colorP').value });
-            canvas.add(text); text.enterEditing(); setMode('pen');
-        }
-        if (currentMode === 'eraser' && opt.target && opt.target.selectable !== false) {
-            canvas.remove(opt.target); canvas.requestRenderAll();
-        }
-    });
-
-    canvas.on('mouse:move', function(opt) {
-        if (this.isDragging && isRightClickActive) {
-            let v = this.viewportTransform;
-            v[4] += opt.e.clientX - this.lastPosX; v[5] += opt.e.clientY - this.lastPosY;
-            canvas.requestRenderAll();
-            this.lastPosX = opt.e.clientX; this.lastPosY = opt.e.clientY;
-        }
-    });
-
-    canvas.on('mouse:up', function(opt) {
-        if (opt.button === 3) {
-            isRightClickActive = false; this.isDragging = false;
-            if (currentMode === 'pen' || currentMode === 'high') canvas.isDrawingMode = true;
-            canvas.requestRenderAll();
-        }
-    });
-
-    // জুম ও স্ক্রল (Zero Latency Logic)
-    canvas.on('mouse:wheel', function(opt) {
-        if (isRightClickActive) {
-            let zoom = canvas.getZoom() * (0.999 ** opt.e.deltaY);
-            if (zoom > 20) zoom = 20; if (zoom < 0.05) zoom = 0.05;
-            canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-            document.getElementById('zLabel').innerText = Math.round(canvas.getZoom() * 100) + '%';
-        } else {
-            let v = this.viewportTransform;
-            v[5] -= opt.e.deltaY * 0.9;
-            canvas.requestRenderAll();
-        }
-        opt.e.preventDefault(); opt.e.stopPropagation();
-    });
-
     function setMode(mode) {
         currentMode = mode;
         canvas.isDrawingMode = (mode === 'pen' || mode === 'high');
         document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(mode + 'M')?.classList.add('active');
+        document.getElementById(mode + 'M').classList.add('active');
         if(canvas.isDrawingMode) updateBrush();
     }
 
+    // মুভমেন্ট এবং প্যানিং (মোবাইলের জন্য বিশেষ লজিক)
+    let isDragging = false;
+    canvas.on('mouse:down', (opt) => {
+        if (currentMode === 'eraser' && opt.target) {
+            canvas.remove(opt.target);
+        }
+    });
+
     function saveState() { pages[currentPage] = JSON.stringify(canvas); }
-    function duplicateCurrentPage() { saveState(); pages.splice(currentPage + 1, 0, pages[currentPage]); currentPage++; loadPage(); }
     function addNewPage() { saveState(); pages.push(null); currentPage = pages.length - 1; canvas.clear(); canvas.setBackgroundColor('#050508', updateUI); }
     function nextPage() { if (currentPage < pages.length - 1) { saveState(); currentPage++; loadPage(); } }
     function prevPage() { if (currentPage > 0) { saveState(); currentPage--; loadPage(); } }
@@ -159,7 +120,6 @@
         canvas.setBackgroundColor('#050508', () => {
             if (pages[currentPage]) {
                 canvas.loadFromJSON(pages[currentPage], () => {
-                    canvas.getObjects().forEach(o => { if(o.type === 'image') o.set({selectable: false, evented: false}); });
                     canvas.requestRenderAll();
                 });
             }
@@ -167,43 +127,14 @@
         });
     }
 
-    document.getElementById('pdfInp').onchange = async (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = async function() {
-            const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 1.5 });
-                const tc = document.createElement('canvas');
-                tc.height = viewport.height; tc.width = viewport.width;
-                await page.render({ canvasContext: tc.getContext('2d'), viewport }).promise;
-                fabric.Image.fromURL(tc.toDataURL('image/jpeg', 0.6), (img) => {
-                    img.scaleToWidth(canvas.width * 0.9); img.set({selectable: false, evented: false});
-                    if (i === 1) canvas.add(img).centerObject(img).sendToBack(img);
-                    else pages.push(JSON.stringify({ objects: [img.toObject()] }));
-                    updateUI();
-                });
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    };
-
-    document.getElementById('imgInp').onchange = (e) => {
-        const reader = new FileReader();
-        reader.onload = (f) => fabric.Image.fromURL(f.target.result, img => {
-            img.scaleToWidth(400); img.set({selectable: false, evented: false});
-            canvas.add(img).centerObject(img).sendToBack(img);
-        });
-        reader.readAsDataURL(e.target.files[0]);
-    };
-
     function deleteActive() { canvas.clear(); canvas.setBackgroundColor('#050508', () => canvas.requestRenderAll()); }
-    function updateUI() { document.getElementById('pLabel').innerText = `${currentPage + 1} / ${pages.length}`; }
-    window.addEventListener('keydown', (e) => { if (e.key === "ArrowRight") nextPage(); if (e.key === "ArrowLeft") prevPage(); });
-    window.addEventListener('resize', () => canvas.setDimensions({ width: window.innerWidth, height: window.innerHeight - 75 }));
+    function updateUI() { document.getElementById('pLabel').innerText = `${currentPage + 1}/${pages.length}`; }
     
-    updateBrush(); updateUI();
+    window.addEventListener('resize', () => {
+        canvas.setDimensions({ width: window.innerWidth, height: window.innerHeight - 70 });
+    });
+    
+    updateBrush();
 </script>
 </body>
 </html>
